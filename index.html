@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>welcome</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+	<main class="container" role="main">
+		<h1 class="visually-hidden">감정 기반 컬러 무드</h1>
+		<div class="input-wrap" aria-live="polite">
+			<label for="emotion-input" class="label">오늘은 어떠셨나요?</label>
+			<input id="emotion-input" type="text" autocomplete="off" aria-describedby="hint" />
+			<!--<button id="emotion-confirm" type="button" style="margin-left:12px;padding:12px 22px;border-radius:10px;border:none;background:#393a54;color:#fafafa;font-size:1rem;font-weight:600;cursor:pointer;box-shadow:0 1.5px 4px rgba(0,0,0,0.09);">Send</button>
+			-->
+			<p id="hint" class="hint"></p>
+		</div>
+		<div id="canvas" class="canvas" aria-hidden="true"></div>
+	</main>
+	<script src="./script.js"></script>
+</body>
+</html>
+

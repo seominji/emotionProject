@@ -1,0 +1,186 @@
+/* Base reset */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+	margin: 0;
+	/*font-family: 'Pretendard', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;*/
+	color: #e8e8ec;
+	background: radial-gradient(1200px 800px at 20% 10%, #0f1022 0%, #0a0b1a 45%, #070815 100%);
+	overflow: hidden;
+	font-family: 'CustomFont2', cursive, sans-serif;
+	letter-spacing: 2px;
+
+}
+
+@font-face {
+    /* 1. 이 폰트에 부여할 이름 (CSS에서 font-family 값으로 사용) */
+    font-family: 'CustomFont';
+    
+    /* 2. 폰트 파일의 경로 지정 */
+    src: url('./font/Eulyoo.woff2') format('woff2'),
+		 url('./font/Eulyoo.woff') format('woff'),
+		 url('./font/Eulyoo.otf') format('otf'),
+		 url('./font/Eulyoo.ttf') format('truetype');
+    /* 3. (선택 사항) 폰트의 굵기 및 스타일 지정 */
+    font-weight: lighter;
+    font-style: normal;
+}
+
+@font-face {
+    /* 1. 이 폰트에 부여할 이름 (CSS에서 font-family 값으로 사용) */
+    font-family: 'CustomFont2';
+    
+    /* 2. 폰트 파일의 경로 지정 */
+    src: url('./font/온글잎무궁체.ttf') format('truetype'),
+		 url('./font/Eulyoo.woff') format('woff'),
+		 url('./font/Eulyoo.otf') format('otf'),
+		 url('./font/Eulyoo.ttf') format('truetype');
+    /* 3. (선택 사항) 폰트의 굵기 및 스타일 지정 */
+    font-weight: lighter;
+    font-style: normal;
+	font-size: 10%;
+
+}
+
+.container {
+	position: relative;
+	width: 100%;
+	height: 100vh;
+	display: grid;
+	place-items: center;
+	padding: 24px;
+}
+
+.input-wrap {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: min(680px, 92vw);
+	text-align: center;
+	z-index: 2;
+	backdrop-filter: blur(6px) saturate(120%);
+	background: rgba(20, 22, 40, 0.35);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	border-radius: 16px;
+	padding: 20px 18px 16px;
+	box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+	opacity: 1;
+	transition: opacity 0.8s ease-out;
+}
+
+.input-wrap.hide { 
+	opacity: 0; 
+	transition: opacity 6s cubic-bezier(0.71,0.01,0.4,0.99); 
+	pointer-events: none; 
+}
+.input-wrap.removed { display: none !important; }
+
+.label {
+	display: block;
+	font-weight: lighter; /*정수로도 가능*/
+	font-size: 24px;
+	margin-bottom: 10px;
+	color: #f0f0f4;
+}
+
+.hint {
+	margin: 8px 0 0;
+	font-size: 13px;
+	color: #b9bcc9;
+}
+
+#emotion-input {
+	width: 100%;
+	padding: 14px 16px;
+	border-radius: 12px;
+	border: 1px solid rgba(255,255,255,0.12);
+	background: rgba(255,255,255,0.06);
+	color: #ffffff;
+	outline: none;
+	font-size: 16px;
+	transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+#emotion-input::placeholder { color: #9aa0af; }
+
+#emotion-input:focus {
+	border-color: rgba(255,255,255,0.25);
+	background: rgba(255,255,255,0.1);
+	box-shadow: 0 0 0 6px rgba(255,255,255,0.06);
+}
+
+#radial-overlay{
+      position:fixed;
+      inset:0;
+      pointer-events:none; /* 클릭 이벤트 차단 */
+      z-index:9999;
+      background:transparent;
+      opacity:1;
+      transition:opacity 260ms linear; /* 서서히 사라지는 효과 */
+      will-change:background,opacity; /* 브라우저 최적화 힌트 */
+    }
+
+.canvas {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+	z-index: 1;
+}
+
+.layer {
+	position: absolute;
+	inset: 0;
+	opacity: 0;
+	transition: opacity 4s cubic-bezier(0.71,0.01,0.4,0.99); /*여기서 원 페이드인,아웃 속도 조절*/
+}
+
+.orb {
+	position: absolute;
+	border-radius: 50%;
+	filter: blur(0.2px);
+	opacity: 0.88;
+	will-change: transform, opacity;
+	/* 주변을 부드럽게 돌아다니도록 위치 전환 트랜지션 추가 */
+	transition: left 6s ease-in-out, top 6s ease-in-out;
+}
+
+.glow::after {
+	content: '';
+	position: absolute;
+	inset: -20%;
+	border-radius: 50%;
+	filter: blur(24px);
+	opacity: 0.8;
+	z-index: -1;
+}
+
+/* floating animations */
+@keyframes floatA { 0% { transform: translateY(0) translateX(0) scale(1); } 50% { transform: translateY(-42px) translateX(24px) scale(1.08); } 100% { transform: translateY(0) translateX(0) scale(1); } }
+@keyframes floatB { 0% { transform: translateY(0) translateX(0) scale(1); } 50% { transform: translateY(-32px) translateX(-28px) scale(1.06); } 100% { transform: translateY(0) translateX(0) scale(1); } }
+@keyframes floatC { 0% { transform: translateY(0) translateX(0) scale(1); } 50% { transform: translateY(-54px) translateX(16px) scale(1.1); } 100% { transform: translateY(0) translateX(0) scale(1); } }
+
+@keyframes pulseRot { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(2.5deg) scale(1.04); } 100% { transform: rotate(0deg) scale(1); } }
+
+.visually-hidden {
+	position: absolute !important;
+	clip: rect(1px, 1px, 1px, 1px);
+	padding: 0 !important;
+	border: 0 !important;
+	height: 1px !important;
+	width: 1px !important;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.background-ripple {
+    will-change: opacity;
+    transform: translateZ(0);
+}
+
+.example-message {
+    will-change: opacity;
+    transform: translateZ(0);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}

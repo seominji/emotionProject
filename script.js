@@ -3,8 +3,8 @@ const canvasEl = document.getElementById('canvas');
 
 document.addEventListener('DOMContentLoaded', function() {
     const messages = [
-        "이곳은 당신의 감정이 머무는 곳입니다.",
-        "부드러운 구(Orb)들은 방금 태어난 무채색의 감정 오브들이에요.",
+        "이곳은 '감정'이 머무는 세계입니다.",
+        "여기 있는 부드러운 구(Orb)들은 방금 태어난 당신의 감정 오브들이에요.",
         "지금의 감정을 입력해서 어린 감정 오브들에게 색을 부여해주세요."
     ];
     
@@ -16,13 +16,15 @@ document.addEventListener('DOMContentLoaded', function() {
         messageEl.classList.add('show');
         await new Promise(resolve => setTimeout(resolve, duration)); //show 실행 후 3초간 화면 유지
         messageEl.classList.remove('show');
-        await new Promise(resolve => setTimeout(resolve, duration-2)); //show 제거 후 몇 초 유지
+        await new Promise(resolve => setTimeout(resolve, 3000)); //show 제거 후 몇 초 유지
     }
     
     async function playIntro() {
+        let playTime = 4000
         for (const message of messages) {
-            //duration 값을 5초로 showMessage 함수에 보내고 전부 끝날때까지 대기(await).
-            await showMessage(message, 4000);
+            //duration 값을 6초로 showMessage 함수에 보내고 전부 끝날때까지 대기(await).
+            await showMessage(message, playTime);
+            playTime += 3000; //다음 메시지로 갈수록 duration 증가
         }
         messageEl.style.display = 'none';
         inputWrap.style.display = 'block';
@@ -226,14 +228,17 @@ function createOrb(idx, baseColor) {
 	const orb = document.createElement('div');
 	orb.className = 'orb glow';
 
+   
+	let size = randomBetween(60, 220);
+
     console.warn('첫 오브 생성 전:', idx, baseColor);
-	const size = randomBetween(60, 220);
-    // if (baseColor === '#eff8ddff') {
-    //     // 초기 오브 색일 때는 작게
-    //     size = 60;
-    // } else {
-    //     size = randomBetween(60, 220);
-    // }
+
+    if (baseColor === '#eeeeeeff') {
+        // 초기 오브 색일 때는 작게
+        size = randomBetween(40, 120);
+    } else {
+        size = randomBetween(60, 220);
+    }
 
 	const left = randomBetween(-10, 90);
 	const top = randomBetween(-10, 90);

@@ -1,5 +1,54 @@
 const inputEl = document.getElementById('emotion-input');
 const canvasEl = document.getElementById('canvas');
+
+document.addEventListener('DOMContentLoaded', function() {
+    const messages = [
+        "이곳은 당신의 감정이 머무는 곳입니다.",
+        "부드러운 구(Orb)들은 방금 태어난 무채색의 감정 오브들이에요.",
+        "지금의 감정을 입력해서 어린 감정 오브들에게 색을 부여해주세요."
+    ];
+    
+    const messageEl = document.getElementById('intro-message');
+    const inputWrap = document.querySelector('.input-wrap');
+    
+    async function showMessage(text, duration) {
+        messageEl.textContent = text;
+        messageEl.classList.add('show');
+        await new Promise(resolve => setTimeout(resolve, duration)); //show 실행 후 3초간 화면 유지
+        messageEl.classList.remove('show');
+        await new Promise(resolve => setTimeout(resolve, duration-2)); //show 제거 후 몇 초 유지
+    }
+    
+    async function playIntro() {
+        for (const message of messages) {
+            //duration 값을 5초로 showMessage 함수에 보내고 전부 끝날때까지 대기(await).
+            await showMessage(message, 4000);
+        }
+        messageEl.style.display = 'none';
+        inputWrap.style.display = 'block';
+    }
+    
+    // 스페이스 키를 누를 때만 인트로 시작
+    function handleKeyPress(e) {
+        if (e.code === 'Space' || e.key === ' ') {
+            playIntro();
+            // 한 번 실행 후 이벤트 리스너 제거
+            document.removeEventListener('keydown', handleKeyPress);
+        }
+    }
+
+    // 초기에 입력창 숨기기
+    if (inputWrap) {
+        inputWrap.style.display = 'none';
+    }
+
+    // 스페이스 키 이벤트 리스너 추가
+    document.addEventListener('keydown', handleKeyPress);
+});
+
+
+
+
 let orbTimers = [];
 let layers = [];
 
@@ -16,7 +65,7 @@ function aliasMatch(token, keyRaw) {
 }
 
 function colorForEmotion(text) {
-	if (!text) return '#ebffc2';
+	if (!text) return '#dce9c3ff'; //초기 오브 색
 	const tNorm = normalizeText(text);
 	const tokens = tNorm.split(/\s+/).filter(Boolean);
 
@@ -178,6 +227,13 @@ function createOrb(idx, baseColor) {
 	orb.className = 'orb glow';
 
 	const size = randomBetween(60, 220);
+    // if (baseColor === '#eff8ddff') {
+    //     // 초기 오브 색일 때는 작게
+    //     size = 60;
+    // } else {
+    //     size = randomBetween(60, 220);
+    // }
+
 	const left = randomBetween(-10, 90);
 	const top = randomBetween(-10, 90);
 
@@ -193,10 +249,13 @@ function createOrb(idx, baseColor) {
             const exampleIdx = idx % group.examples.length;
             exampleText = group.examples[exampleIdx];
             */
-            // 랜덤하게 예시 문장 선택
+            // 랜덤하게 예시 문장 선택    
             const randomIdx = Math.floor(Math.random() * group.examples.length);
             exampleText = group.examples[randomIdx];
             break;
+        }
+        else{
+            exampleText = '당신의 감정은 특별합니다.';
         }
     }
 
@@ -383,7 +442,7 @@ function tokenizeEmotions(text) {
 	// 구분자: 공백, 콤마, 슬래시, 앰퍼샌드, 플러스, '과/와/그리고/및/and'
 	let raw = norm
 		.replace(/\band\b/g, ' ')
-		.replace(/\b그리고\b|\b과\b|\b와\b|\b및\b/g, ' ')
+		.replace(/\b그리고\b|\b과\b|\b와\b|\b했고\b/g, ' ')
 		.replace(/[,&+/]+/g, ' ')
 		.split(/\s+/)
 		.filter(Boolean);

@@ -12,8 +12,11 @@
 </head>
 <body>
 	<main class="container" role="main">
-		<h1 class="visually-hidden">감정 기반 컬러 무드</h1>
-		<div class="input-wrap" aria-live="polite">
+		<h1 class="visually-hidden">감정 기반 컬러 오브 프로젝트</h1>
+		<!-- 인트로 메시지를 표시할 div -->
+		<div id="intro-message" class="message"></div>
+		<!-- 감정 입력 필드 -->
+		<div class="input-wrap" aria-live="polite" style="display: none;">
 			<label for="emotion-input" class="label">오늘은 어떠셨나요?</label>
 			<input id="emotion-input" type="text" autocomplete="off" aria-describedby="hint" />
 			<!--<button id="emotion-confirm" type="button" style="margin-left:12px;padding:12px 22px;border-radius:10px;border:none;background:#393a54;color:#fafafa;font-size:1rem;font-weight:600;cursor:pointer;box-shadow:0 1.5px 4px rgba(0,0,0,0.09);">Send</button>

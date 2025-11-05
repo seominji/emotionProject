@@ -81,7 +81,7 @@ body {
 	font-weight: lighter; /*정수로도 가능*/
 	font-size: 24px;
 	margin-bottom: 10px;
-	color: #f0f0f4;
+	color: #dbdbe9;
 }
 
 .hint {
@@ -96,7 +96,7 @@ body {
 	border-radius: 12px;
 	border: 1px solid rgba(255,255,255,0.12);
 	background: rgba(255,255,255,0.06);
-	color: #ffffff;
+	color: #d9dae4;
 	outline: none;
 	font-size: 16px;
 	transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
@@ -178,9 +178,26 @@ body {
     transform: translateZ(0);
 }
 
-.example-message {
+.example-message { /* 위로의 말 스타일 */
     will-change: opacity;
     transform: translateZ(0);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
+}
+
+.message { /* 시작의 말 스타일 */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    font-weight: 500;
+    color: #dbdbe9;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 2.0s ease-in-out;
+}
+
+.message.show {
+    opacity: 1;
 }

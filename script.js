@@ -65,7 +65,7 @@ function aliasMatch(token, keyRaw) {
 }
 
 function colorForEmotion(text) {
-	if (!text) return '#dce9c3ff'; //초기 오브 색
+	if (!text) { return '#eeeeeeff'; }//초기 오브 색
 	const tNorm = normalizeText(text);
 	const tokens = tNorm.split(/\s+/).filter(Boolean);
 
@@ -226,6 +226,7 @@ function createOrb(idx, baseColor) {
 	const orb = document.createElement('div');
 	orb.className = 'orb glow';
 
+    console.warn('첫 오브 생성 전:', idx, baseColor);
 	const size = randomBetween(60, 220);
     // if (baseColor === '#eff8ddff') {
     //     // 초기 오브 색일 때는 작게
@@ -284,6 +285,7 @@ function createOrb(idx, baseColor) {
 	const after = document.createElement('style');
 	after.textContent = `#${ensureCanvasId()} .orb.glow:nth-child(${idx + 1})::after{background:${glowColor};}`;
 	orb.appendChild(after);
+        console.warn('첫 오브 생성 후:', idx, glowColor);
 
     // 부드러운 주변 이동(드리프트) 시작
     const stop = startWander(orb, 12); // 반경 12% 내에서 부유
@@ -378,6 +380,7 @@ function renderOrbsFromText(text) {
             sendUnknownEmotion(text, []);
         }
         const baseColor = colorForEmotion(text);
+        console.warn('최초 오브 리턴 컬러: ', baseColor);
         for (let i = 0; i < COUNT; i++) {
 			const { el, stop } = createOrb(i, baseColor);
             layerStops.push(stop);

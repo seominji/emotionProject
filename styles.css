@@ -4,7 +4,7 @@ html, body { height: 100%; }
 body {
 	margin: 0;
 	/*font-family: 'Pretendard', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;*/
-	color: #e8e8ec;
+	color: #aca7b6;
 	background: radial-gradient(1200px 800px at 20% 10%, #0f1022 0%, #0a0b1a 45%, #070815 100%);
 	overflow: hidden;
 	font-family: 'CustomFont2', cursive, sans-serif;
@@ -65,13 +65,24 @@ body {
 	border-radius: 16px;
 	padding: 20px 18px 16px;
 	box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+	opacity: 0;
+	/*transition: opacity 2s ease-out;*/
+}
+
+.input-wrap.show {
+	display: block;
+}
+
+.input-wrap.visible {
 	opacity: 1;
-	transition: opacity 0.8s ease-out;
+	/*input 창이 나타나는 속도*/
+	transition: opacity 2s ease-in; 
 }
 
 .input-wrap.hide { 
 	opacity: 0; 
-	transition: opacity 6s cubic-bezier(0.71,0.01,0.4,0.99); 
+	/*input 창이 사라지는 속도*/
+	transition: opacity 3s cubic-bezier(0.71,0.01,0.4,0.99); 
 	pointer-events: none; 
 }
 .input-wrap.removed { display: none !important; }
@@ -132,7 +143,7 @@ body {
 	position: absolute;
 	inset: 0;
 	opacity: 0;
-	transition: opacity 4s cubic-bezier(0.71,0.01,0.4,0.99); /*여기서 원 페이드인,아웃 속도 조절*/
+	transition: opacity 3s cubic-bezier(0.71,0.01,0.4,0.99); /*여기서 최초 레이어 페이드인,아웃 속도 조절*/
 }
 
 .orb {
@@ -195,7 +206,7 @@ body {
     color: #dbdbe9;
     text-align: center;
     opacity: 0;
-    transition: opacity 2.0s ease-in-out;
+    transition: opacity 1.0s ease-in-out; /* 웰컴 메시지 페이드 인/아웃 효과 지속 시간 */
 }
 
 .message.show {

@@ -1,5 +1,55 @@
-const inputEl = document.getElementById('emotion-input');
+const inputEl = document.getElementById('emotion-input'); //실제 html input 태그 값
+const inputWrap = document.querySelector('.input-wrap'); //input div 껍데기
 const canvasEl = document.getElementById('canvas');
+
+//inputWrap.style.display = 'block';
+ //여기에 스페이스 키 다운 안내 버튼 추가
+document.addEventListener('DOMContentLoaded', () => {
+  // 문구 담을 div 생성
+  const div = document.createElement('div');
+  div.textContent = '스페이스를 눌러 진행해주세요.';
+
+  // 멘트 스타일
+  div.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px 40px;
+    background-color: rgba(28, 30, 53, 0.75);
+    color: white;
+    border-radius: 12px;
+    font-size: 20px;
+    text-align: center;
+    opacity: 0; /* 처음엔 투명 */
+    transition: opacity 1.5s ease; /* 부드러운 페이드 효과 */
+  `;
+
+  // 화면에 추가
+  document.body.appendChild(div);
+
+  // 4️⃣ 페이드인 (화면에 나타남)
+  setTimeout(() => {
+    div.style.opacity = '1';
+  }, 1000); // 살짝 지연시켜야 transition이 적용됨
+  
+  // 5️⃣ 스페이스 누르면 페이드아웃
+  function handleKey(e) {
+    if (e.code === 'Space' || e.key === ' ') {
+      div.style.opacity = '0';
+      document.removeEventListener('keydown', handleKey);
+
+      // 완전히 사라진 뒤 DOM에서 제거
+      setTimeout(() => {
+        div.remove();
+      }, 1500); // transition 시간(1.5초)과 맞춤
+    }
+  }
+
+  document.addEventListener('keydown', handleKey);
+});
+
+
 
 document.addEventListener('DOMContentLoaded', function() {
     const messages = [
@@ -8,48 +58,66 @@ document.addEventListener('DOMContentLoaded', function() {
         "지금의 감정을 입력해서 어린 감정 오브들에게 색을 부여해주세요."
     ];
     
+    //const messageEl = document.getElementById('intro-message');
+    //const inputWrap = document.querySelector('.input-wrap');
+    
+    let currentIndex = 0;
+    let isTransitioning = false;
+    
     const messageEl = document.getElementById('intro-message');
-    const inputWrap = document.querySelector('.input-wrap');
-    
-    async function showMessage(text, duration) {
-        messageEl.textContent = text;
-        messageEl.classList.add('show');
-        await new Promise(resolve => setTimeout(resolve, duration)); //show 실행 후 3초간 화면 유지
-        messageEl.classList.remove('show');
-        await new Promise(resolve => setTimeout(resolve, 3000)); //show 제거 후 몇 초 유지
-    }
-    
-    async function playIntro() {
-        let playTime = 4000
-        for (const message of messages) {
-            //duration 값을 6초로 showMessage 함수에 보내고 전부 끝날때까지 대기(await).
-            await showMessage(message, playTime);
-            playTime += 3000; //다음 메시지로 갈수록 duration 증가
+
+    async function showNextMessage() {
+        if (isTransitioning) return; // 연타 방지
+        isTransitioning = true;
+
+        // 첫 번째 메시지면 그냥 보여줌
+        if (currentIndex === 0) {
+            await new Promise(resolve => setTimeout(resolve, 1300)); //멘트나오기 전 약간의 딜레이
+            messageEl.textContent = messages[currentIndex];
+            messageEl.classList.add('show');
+        } else if (currentIndex < messages.length) {
+            // 페이드아웃
+            messageEl.classList.remove('show');
+            await new Promise(resolve => setTimeout(resolve, 1300)); //웰컴 메시지 fade-out 2초
+
+            // 다음 메시지로 교체 후 페이드인
+            messageEl.textContent = messages[currentIndex];
+            messageEl.classList.add('show');
         }
-        messageEl.style.display = 'none';
-        inputWrap.style.display = 'block';
-    }
-    
-    // 스페이스 키를 누를 때만 인트로 시작
-    function handleKeyPress(e) {
-        if (e.code === 'Space' || e.key === ' ') {
-            playIntro();
-            // 한 번 실행 후 이벤트 리스너 제거
+
+        currentIndex++;
+        isTransitioning = false;
+
+        // 모든 메시지를 다 본 경우 → 입력창 표시
+        if (currentIndex > messages.length) {
+            messageEl.classList.remove('show');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            messageEl.style.display = 'none';
+            //inputWrap.style.display = 'block';
+            inputWrap.classList.add('show');
+            
+                inputWrap.classList.add('visible');
+            requestAnimationFrame(() => {
+                inputWrap.classList.add('visible');
+          });
             document.removeEventListener('keydown', handleKeyPress);
         }
     }
 
-    // 초기에 입력창 숨기기
+    function handleKeyPress(e) {
+        if (e.code === 'Space' || e.key === ' ') {
+            showNextMessage();
+        }
+    }
+
+    // 초기 설정
     if (inputWrap) {
         inputWrap.style.display = 'none';
     }
+    messageEl.classList.remove('show');
 
-    // 스페이스 키 이벤트 리스너 추가
     document.addEventListener('keydown', handleKeyPress);
 });
-
-
-
 
 let orbTimers = [];
 let layers = [];
@@ -575,68 +643,10 @@ async function handleEmotionSubmit() {
 		setTimeout(() => {
 			renderOrbsFromText(value);
 			_msgLock = false;
-		}, 6000); 
-	}, 6000); // 이 두 개를 늘리면 다음 원이 나올 때까지의 텀이 길어짐.
+		}, 1000); //최초 원 페이드 아웃
+	}, 3000); // 입력창 페이드 아웃
 }
 
-/*
-function handleEmotionSubmit() {
-    if (_msgLock) return;
-    const value = inputEl.value.trim();
-    const inputWrap = document.querySelector('.input-wrap');
-
-    // 입력칸과 기존 원 레이어 동시에 페이드아웃
-    if (inputWrap) inputWrap.classList.add('hide');
-    const layersToRemove = document.querySelectorAll('.canvas .layer');
-    layersToRemove.forEach(el => el.style.opacity = '0');
-    //_msgLock = true;
-
-	// 기존 레이어 정리 및 새로운 원 생성
-    setTimeout(() => {
-        // 기존 레이어 제거
-        layersToRemove.forEach(el => {
-            if (el.parentNode) el.parentNode.removeChild(el);
-        });
-        if (inputWrap) inputWrap.classList.add('removed');
-
-		// n초 후 새 원 등장
-        setTimeout(() => {
-                renderOrbsFromText(value);
-                _msgLock = false;
-            }, 3000);
-
-    }, 5000); // 페이드아웃 시간에 맞춰 조정
-
-	/*
-    let removing = layersToRemove.length;
-    function onLayerTransitionEnd(e) {
-        if (e.propertyName !== 'opacity') return;
-        if (e.target.parentNode) e.target.parentNode.removeChild(e.target);
-        removing--;
-        if (removing === 0) {
-            if (inputWrap) inputWrap.classList.add('removed');
-
-            // n초 후 새 원 등장
-            setTimeout(() => {
-                renderOrbsFromText(value);
-                _msgLock = false;
-            }, 800);
-			
-        }
-    }
-    layersToRemove.forEach(el => {
-        el.addEventListener('transitionend', onLayerTransitionEnd, { once: true });
-    });
-
-    // 예외 상황(레이어가 하나도 없을 때) 바로 remove
-    if (removing === 0) {
-        if (inputWrap) inputWrap.classList.add('removed');
-        setTimeout(() => {
-            renderOrbsFromText(value);
-            _msgLock = false;
-        }, 3000);
-    }
-	*/
 
 let cancelCurrent = null;
 
@@ -647,7 +657,7 @@ function createOverlay(){
     return el;
 }
 
-// 클릭 이벤트 핸들러 추가
+// 오브 클릭 이벤트 핸들러 추가
 function handleOrbClick(e) {
     const duration = 5000;
 	const orb = e.target;
@@ -817,7 +827,7 @@ function handleOrbClick(e) {
 	// 3초 후 효과 제거
     setTimeout(() => {
         messageEl.style.opacity = '0';
-        ripple.style.opacity = '0';
+        //ripple.style.opacity = '0';
         
         setTimeout(() => {
             if (messageEl.parentNode) messageEl.parentNode.removeChild(messageEl);
@@ -842,7 +852,7 @@ function renderWithWaitForClear(text) {
             }, 40);
         };
         prev.el.addEventListener('transitionend', doRender, { once: true });
-        setTimeout(doRender, 5000);
+        setTimeout(doRender, 4000); //입력창 사라지고 다음 원 렌더링까지 걸리는 시간 조절
     } else {
         forceClearAllLayersAndTimers();
         renderOrbsWithUnlock(text);

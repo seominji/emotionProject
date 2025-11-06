@@ -66,17 +66,15 @@ body {
 	padding: 20px 18px 16px;
 	box-shadow: 0 10px 30px rgba(0,0,0,0.35);
 	opacity: 0;
-	/*transition: opacity 2s ease-out;*/
+	transition: opacity 2s ease-in-out;
 }
 
 .input-wrap.show {
-	display: block;
+	opacity: 1;
 }
 
 .input-wrap.visible {
-	opacity: 1;
-	/*input 창이 나타나는 속도*/
-	transition: opacity 2s ease-in; 
+	display: block;
 }
 
 .input-wrap.hide { 

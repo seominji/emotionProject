@@ -5,48 +5,48 @@ const canvasEl = document.getElementById('canvas');
 //inputWrap.style.display = 'block';
  //여기에 스페이스 키 다운 안내 버튼 추가
 document.addEventListener('DOMContentLoaded', () => {
-  // 문구 담을 div 생성
-  const div = document.createElement('div');
-  div.textContent = '스페이스를 눌러 진행해주세요.';
+    // 문구 담을 div 생성
+    const div = document.createElement('div');
+    div.textContent = '스페이스를 눌러 진행해주세요.';
 
-  // 멘트 스타일
-  div.style.cssText = `
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    padding: 20px 40px;
-    background-color: rgba(28, 30, 53, 0.75);
-    color: white;
-    border-radius: 12px;
-    font-size: 20px;
-    text-align: center;
-    opacity: 0; /* 처음엔 투명 */
-    transition: opacity 1.5s ease; /* 부드러운 페이드 효과 */
-  `;
+    // 멘트 스타일
+    div.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 20px 40px;
+        background-color: rgba(28, 30, 53, 0.75);
+        color: white;
+        border-radius: 12px;
+        font-size: 20px;
+        text-align: center;
+        opacity: 0; /* 처음엔 투명 */
+        transition: opacity 1.5s ease; /* 부드러운 페이드 효과 */
+    `;
 
-  // 화면에 추가
-  document.body.appendChild(div);
+    // 화면에 추가
+    document.body.appendChild(div);
 
-  // 4️⃣ 페이드인 (화면에 나타남)
-  setTimeout(() => {
-    div.style.opacity = '1';
-  }, 1000); // 살짝 지연시켜야 transition이 적용됨
-  
-  // 5️⃣ 스페이스 누르면 페이드아웃
-  function handleKey(e) {
-    if (e.code === 'Space' || e.key === ' ') {
-      div.style.opacity = '0';
-      document.removeEventListener('keydown', handleKey);
+    // 4️⃣ 페이드인 (화면에 나타남)
+    setTimeout(() => {
+        div.style.opacity = '1';
+    }, 1000); // 살짝 지연시켜야 transition이 적용됨
+    
+    // 5️⃣ 스페이스 누르면 페이드아웃
+    function handleKey(e) {
+        if (e.code === 'Space' || e.key === ' ') {
+        div.style.opacity = '0';
+        document.removeEventListener('keydown', handleKey);
 
-      // 완전히 사라진 뒤 DOM에서 제거
-      setTimeout(() => {
-        div.remove();
-      }, 1500); // transition 시간(1.5초)과 맞춤
+        // 완전히 사라진 뒤 DOM에서 제거
+        setTimeout(() => {
+            div.remove();
+        }, 1500); // transition 시간(1.5초)과 맞춤
+        }
     }
-  }
 
-  document.addEventListener('keydown', handleKey);
+    document.addEventListener('keydown', handleKey);
 });
 
 
@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (currentIndex < messages.length) {
             // 페이드아웃
             messageEl.classList.remove('show');
-            await new Promise(resolve => setTimeout(resolve, 1300)); //웰컴 메시지 fade-out 2초
+            await new Promise(resolve => setTimeout(resolve, 1300)); //웰컴 메시지 fade-out 기다리는 시간
 
             // 다음 메시지로 교체 후 페이드인
             messageEl.textContent = messages[currentIndex];
@@ -93,13 +93,11 @@ document.addEventListener('DOMContentLoaded', function() {
             messageEl.classList.remove('show');
             await new Promise(resolve => setTimeout(resolve, 2000));
             messageEl.style.display = 'none';
-            //inputWrap.style.display = 'block';
-            inputWrap.classList.add('show');
+
             
-                inputWrap.classList.add('visible');
-            requestAnimationFrame(() => {
-                inputWrap.classList.add('visible');
-          });
+            inputWrap.classList.add('show');
+            inputWrap.style.display = 'block';
+            
             document.removeEventListener('keydown', handleKeyPress);
         }
     }
@@ -597,7 +595,7 @@ function forceClearAllLayersAndTimers() {
 let _renderLock = false;
 let _msgLock = false; // 메시지 표시 중 중복 입력 방지
 
-// handleEmotionSubmit 함수 수정
+// 입력값 전송되면 실행되는 함수
 async function handleEmotionSubmit() {
     if (_msgLock) return;
     const value = inputEl.value.trim();

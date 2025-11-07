@@ -21,6 +21,7 @@ document.getElementById("analyzeBtn").addEventListener("click", async () => {
   });
 
   const result = await response.json();
+  console.log("서버 응답:", result);
   const topEmotion = result[0]?.[0]?.label || "중립";
   const emotionData = emotionMap[topEmotion] || emotionMap["중립"];
 

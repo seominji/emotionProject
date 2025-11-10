@@ -20,8 +20,11 @@ document.getElementById("analyzeBtn").addEventListener("click", async () => {
     body: JSON.stringify({ text })
   });
 
+  //서버측에서 받아온 ai 연산 결과 가져오기
   const result = await response.json();
-  console.log("서버 응답:", result);
+  console.log("서버 응답:", result, typeof result);
+
+
   const topEmotion = result[0]?.[0]?.label || "중립";
   const emotionData = emotionMap[topEmotion] || emotionMap["중립"];
 

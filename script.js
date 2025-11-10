@@ -2,6 +2,11 @@ const inputEl = document.getElementById('emotion-input'); //실제 html input �
 const inputWrap = document.querySelector('.input-wrap'); //input div 껍데기
 const canvasEl = document.getElementById('canvas');
 
+import {emotionColorMap} from './data/emotionColorMap.js';
+import {stopwords} from './data/stopwords.js';
+import {aliasByKey} from './data/aliasByKey.js';
+
+
 //inputWrap.style.display = 'block';
  //여기에 스페이스 키 다운 안내 버튼 추가
 document.addEventListener('DOMContentLoaded', () => {
@@ -120,9 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
 let orbTimers = [];
 let layers = [];
 
-import {emotionColorMap} from './data/emotionColorMap.js';
-import {stopwords} from './data/stopwords.js';
-import {aliasByKey} from './data/aliasByKey.js';
+
 
 
 function aliasMatch(token, keyRaw) {
@@ -134,32 +137,15 @@ function aliasMatch(token, keyRaw) {
 
 function colorForEmotion(text) {
 	if (!text) { return '#eeeeeeff'; }//초기 오브 색
-	const tNorm = normalizeText(text);
-	const tokens = tNorm.split(/\s+/).filter(Boolean);
-
+	
 	let best = { color: null, score: -1 };
 	for (const group of emotionColorMap) {
-		for (const keyRaw of group.keys) {
-			const key = normalizeText(keyRaw);
-			// 정확/부분 포함시 가산점
-			let score = 0;
-			if (tNorm.includes(key)) {
-				score = 1.0;
-			} else {
-				let localBest = 0;
-				for (const tok of tokens) {
-					if (aliasMatch(tok, keyRaw)) { localBest = 1; break; }
-					localBest = Math.max(localBest, jaroWinkler(tok, key));
-				}
-				score = localBest;
-			}
-			if (score > best.score) best = { color: group.color, score };
-		}
+		
 	}
 
 	// 임계값 이상이면 해당 컬러, 아니면 텍스트 기반 HSL
 	// 만약 매핑에도 없고, 유사도 임계값도 넘기지 못하는 입력값이라면 → 문자열 해시 기반 HSL로 폴백
-	return best.score >= 0.82 ? best.color : colorFromString(text);
+	return //컬러값
 }
 
 function isFallbackEmotion(text) {
@@ -297,7 +283,7 @@ function createOrb(idx, baseColor) {
    
 	let size = randomBetween(60, 220);
 
-    console.warn('첫 오브 생성 전:', idx, baseColor);
+    //console.warn('첫 오브 생성 전:', idx, baseColor);
 
     if (baseColor === '#eeeeeeff') {
         // 초기 오브 색일 때는 작게
@@ -356,7 +342,7 @@ function createOrb(idx, baseColor) {
 	const after = document.createElement('style');
 	after.textContent = `#${ensureCanvasId()} .orb.glow:nth-child(${idx + 1})::after{background:${glowColor};}`;
 	orb.appendChild(after);
-        console.warn('첫 오브 생성 후:', idx, glowColor);
+        //console.warn('첫 오브 생성 후:', idx, glowColor);
 
     // 부드러운 주변 이동(드리프트) 시작
     const stop = startWander(orb, 12); // 반경 12% 내에서 부유
@@ -457,8 +443,11 @@ function renderOrbsFromText(text) {
             layerStops.push(stop);
             layerEl.appendChild(el);
         }
-    } else {
+    } 
+    //단일 토큰만 데모.
+    else {
         // 각 토큰별 색 계산 후 개수 배분
+        /*
         const colors = tokens.map(t => colorForEmotion(t));
         const per = Math.floor(COUNT / colors.length);
         const remainder = COUNT - per * colors.length;
@@ -476,6 +465,9 @@ function renderOrbsFromText(text) {
         });
         // 나머지는 첫 번째 감정 색으로 모두 배정
         for (let i = 0; i < remainder; i++) assignment.push(colors[0]);
+        */
+
+
 
         shuffleInPlace(assignment);
         for (let i = 0; i < assignment.length; i++) {
@@ -621,11 +613,34 @@ async function handleEmotionSubmit() {
         });
         
         if (!response.ok) {
-            console.error('Failed to log emotion');
+            console.error('Failed to /api/emotion-log request');
         }
     } catch (err) {
         console.error('Error logging emotion:', err);
     }
+
+
+    let anlValue = null;
+    try{
+        const response = await fetch('http://localhost:3001/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                text: value 
+            })
+        });
+
+        anlValue = await response.json();
+
+        if (!response.ok) {
+            console.error('Failed to /analyze request');
+        }
+    } catch (err) {    
+        console.error('Error handleEmotionSubmit() → /analyze:', err);
+    }
+
+    console.log("서버 리턴 값: ", typeof anlValue, anlValue);
+
 
     // 입력칸과 기존 원 레이어 페이드아웃
     if (inputWrap) inputWrap.classList.add('hide');
@@ -639,10 +654,10 @@ async function handleEmotionSubmit() {
         if (inputWrap) inputWrap.classList.add('removed');
 
 		setTimeout(() => {
-			renderOrbsFromText(value);
+			renderOrbsFromText(anlValue);
 			_msgLock = false;
 		}, 1000); //최초 원 페이드 아웃
-	}, 3000); // 입력창 페이드 아웃
+	}, 3000); // 입력창 페이드 아웃    
 }
 
 

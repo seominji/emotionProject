@@ -135,43 +135,20 @@ function aliasMatch(token, keyRaw) {
 	return false;
 }
 
-function colorForEmotion(text) {
-	if (!text) { return '#eeeeeeff'; }//초기 오브 색
+function colorForEmotion(value) {
+	if (value === -1) { return '#eeeeeeff'; }//초기 오브 색
 	
-	let best = { color: null, score: -1 };
 	for (const group of emotionColorMap) {
-		
+		if(group.keys === value){
+        return group.color; 
+        }
 	}
 
-	// 임계값 이상이면 해당 컬러, 아니면 텍스트 기반 HSL
-	// 만약 매핑에도 없고, 유사도 임계값도 넘기지 못하는 입력값이라면 → 문자열 해시 기반 HSL로 폴백
-	return //컬러값
+    console.error('일치하는 감정 색상 없음:', value);
+    return '#ff7215ff';
 }
 
-function isFallbackEmotion(text) {
-	if (!text) return false;
-	const tNorm = normalizeText(text);
-	const tokens = tNorm.split(/\s+/).filter(Boolean);
-	let best = -1;
-	for (const group of emotionColorMap) {
-		for (const keyRaw of group.keys) {
-			const key = normalizeText(keyRaw);
-			let score = 0;
-			if (tNorm.includes(key)) {
-				score = 1.0;
-			} else {
-				let localBest = 0;
-				for (const tok of tokens) {
-					if (aliasMatch(tok, keyRaw)) { localBest = 1; break; }
-					localBest = Math.max(localBest, jaroWinkler(tok, key));
-				}
-				score = localBest;
-			}
-			if (score > best) best = score;
-		}
-	}
-	return best < 0.82;
-}
+
 
 async function sendUnknownEmotion(inputText, failedTokens) {
 	try {
@@ -307,7 +284,7 @@ function createOrb(idx, baseColor) {
             const exampleIdx = idx % group.examples.length;
             exampleText = group.examples[exampleIdx];
             */
-            // 랜덤하게 예시 문장 선택    
+            // 랜덤하게 예시 문장 선택 근데 만약 18개 문장이 있으면 idx 값대로 배정하면 될듯. group.examples[idx] 이런 식으로.
             const randomIdx = Math.floor(Math.random() * group.examples.length);
             exampleText = group.examples[randomIdx];
             break;
@@ -368,13 +345,16 @@ function shiftColor(color, shift) {
 	// supports hex or hsl()
 	if (color.startsWith('#')) {
 		const { h, s, l } = hexToHsl(color);
+        console.log('shiftColor 호출:', color, '->', `hsl(${(h + shift) % 360} ${s}% ${l}%)`);
 		return `hsl(${(h + shift) % 360} ${s}% ${l}%)`;
 	}
 	if (color.startsWith('hsl')) {
 		const parts = color.replace(/hsl\(|\)|%/g, '').split(/\s+/);
 		const h = (parseFloat(parts[0]) + shift) % 360;
+        console.log('shiftColor 호출:', color, '->', `hsl(${h} ${parts[1]}% ${parts[2]}%)`);
 		return `hsl(${h} ${parts[1]}% ${parts[2]}%)`;
 	}
+    console.warn('지원되지 않는 색상 포맷:', color);
 	return color;
 }
 
@@ -420,7 +400,7 @@ function randomBetween(min, max) {
 	return Math.random() * (max - min) + min;
 }
 
-function renderOrbsFromText(text) {
+function renderOrbsFromText(hfid) { //감정별 라벨이 인자로 전달.
 	//새로운 생성될 원의 개수
     const COUNT = 18;
 
@@ -430,13 +410,13 @@ function renderOrbsFromText(text) {
     layerEl.style.opacity = '0';
     const layerStops = [];
 
-    const tokens = tokenizeEmotions(text);
-    if (tokens.length === 0) {
+    //const tokens = tokenizeEmotions(hfid);
+
+    if (hfid === -1) {
         // 토큰이 없고, 매핑/유사도도 실패라면 DB에 기록
-        if (isFallbackEmotion(text)) {
-            sendUnknownEmotion(text, []);
-        }
-        const baseColor = colorForEmotion(text);
+        //sendUnknownEmotion(text, []);
+       
+        const baseColor = colorForEmotion(hfid);
         console.warn('최초 오브 리턴 컬러: ', baseColor);
         for (let i = 0; i < COUNT; i++) {
 			const { el, stop } = createOrb(i, baseColor);
@@ -446,36 +426,17 @@ function renderOrbsFromText(text) {
     } 
     //단일 토큰만 데모.
     else {
-        // 각 토큰별 색 계산 후 개수 배분
-        /*
-        const colors = tokens.map(t => colorForEmotion(t));
-        const per = Math.floor(COUNT / colors.length);
-        const remainder = COUNT - per * colors.length;
+        const color = colorForEmotion(hfid);
+        console.log('감정 id:', hfid, '매핑 색상:', color);
 
-        // 실패(폴백) 토큰 수집
-        const failed = tokens.filter(t => isFallbackEmotion(t));
-        if (failed.length > 0) {
-            sendUnknownEmotion(text, failed);
-        }
-
-        const assignment = [];
-        // 균등 분배
-        colors.forEach((c) => {
-            for (let i = 0; i < per; i++) assignment.push(c);
-        });
-        // 나머지는 첫 번째 감정 색으로 모두 배정
-        for (let i = 0; i < remainder; i++) assignment.push(colors[0]);
-        */
-
-
-
-        shuffleInPlace(assignment);
-        for (let i = 0; i < assignment.length; i++) {
-            const { el, stop } = createOrb(i, assignment[i]);
+        for (let i = 0; i < COUNT; i++) {
+            const { el, stop } = createOrb(i, color);
             layerStops.push(stop);
             layerEl.appendChild(el);
         }
     }
+
+
 
     canvasEl.appendChild(layerEl);
     // 페이드 인
@@ -503,7 +464,13 @@ function renderOrbsFromText(text) {
 }
 
 function tokenizeEmotions(text) {
-	if (!text) return [];
+	if (text<0) return [];
+    else {
+        const keep = [];
+        keep.push(text);
+        console.log('입력값 토큰:', keep.length);
+        return keep; //단일 토큰 데모용
+    }
 	const norm = normalizeText(text);
 	// 구분자: 공백, 콤마, 슬래시, 앰퍼샌드, 플러스, '과/와/그리고/및/and'
 	let raw = norm
@@ -520,11 +487,10 @@ function tokenizeEmotions(text) {
 	for (const tok of raw) {
 		let best = 0;
 		for (const group of emotionColorMap) {
-			for (const keyRaw of group.keys) {
-				const key = normalizeText(keyRaw);
-				if (tok.includes(key) || key.includes(tok) || aliasMatch(tok, keyRaw)) { best = 1; break; }
-				best = Math.max(best, jaroWinkler(tok, key));
-			}
+            const key = normalizeText(group.keys);
+            if (tok.includes(key) || key.includes(tok) || aliasMatch(tok, group.keys)) { best = 1; break; }
+            best = Math.max(best, jaroWinkler(tok, key));
+        
 			if (best >= 1) break;
 		}
 		if (best >= 0.72) keep.push(tok);
@@ -566,7 +532,7 @@ function startWander(orb, radiusPct) {
 }
 
 // 초기 렌더링 (빈 텍스트 → 기본 컬러)
-renderOrbsFromText('');
+renderOrbsFromText(-1);
 
 // 레이어/타이머 강제 클리어 함수
 function forceClearAllLayersAndTimers() {
@@ -596,6 +562,7 @@ async function handleEmotionSubmit() {
     _msgLock = true;
     const inputWrap = document.querySelector('.input-wrap');
     
+/*
     // 색상값 계산
     const colorValue = colorForEmotion(value);
     
@@ -618,7 +585,7 @@ async function handleEmotionSubmit() {
     } catch (err) {
         console.error('Error logging emotion:', err);
     }
-
+*/
 
     let anlValue = null;
     try{
@@ -626,7 +593,7 @@ async function handleEmotionSubmit() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                text: value 
+                value 
             })
         });
 

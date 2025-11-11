@@ -2,7 +2,7 @@
 //construct: keys; color; examples;
 
 export const emotionColorMap = [
-  { keys: 0, color: '#3664FA', examples: []}, //분노
+  { keys: 0, color: '#3664FA', examples: ["h","i","!"]}, //분노
   { keys: 1, color: '#fdff75ff', examples: []}, //툴툴대는
   { keys: 2, color: '#fd8fb4ff', examples: []}, //좌절한
   { keys: 3, color: '#75e3ffff', examples: []}, //짜증내는

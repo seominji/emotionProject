@@ -1,24 +1,25 @@
 //ref: https://huggingface.co/hun3359/klue-bert-base-sentiment
+//construct: keys; color; examples;
 
 export const emotionColorMap = [
-  { keys: 0, color: '#ff7d75', examples: []},
-  { keys: 1, color: '#ff7d75', examples: []},
-  { keys: 2, color: '#ff7d75', examples: []},
-  { keys: 3, color: '#ff7d75', examples: []},
-  { keys: 4, color: '#ff7d75', examples: []},
-  { keys: 5, color: '#ff7d75', examples: []},
-  { keys: 6, color: '#ff7d75', examples: []},
-  { keys: 7, color: '#ff7d75', examples: []},
-  { keys: 8, color: '#ff7d75', examples: []},
-  { keys: 9, color: '#ff7d75', examples: []},
-  { keys: 10, color: '#ff7d75', examples: []},
-  { keys: 11, color: '#ff7d75', examples: []},
-  { keys: 12, color: '#ff7d75', examples: []},
-  { keys: 13, color: '#ff7d75', examples: []},
-  { keys: 14, color: '#ff7d75', examples: []},
-  { keys: 15, color: '#ff7d75', examples: []},
-  { keys: 16, color: '#ff7d75', examples: []},
-  { keys: 17, color: '#ff7d75', examples: []},
+  { keys: 0, color: '#3664FA', examples: []}, //분노
+  { keys: 1, color: '#fdff75ff', examples: []}, //툴툴대는
+  { keys: 2, color: '#fd8fb4ff', examples: []}, //좌절한
+  { keys: 3, color: '#75e3ffff', examples: []}, //짜증내는
+  { keys: 4, color: '#98ee7eff', examples: []}, //방어적인
+  { keys: 5, color: '#ff7d75', examples: []}, //악의적인
+  { keys: 6, color: '#ff7d75', examples: []}, //안달하는
+  { keys: 7, color: '#ff7d75', examples: []}, //구역질 나는
+  { keys: 8, color: '#ff7d75', examples: []}, //노여워하는
+  { keys: 9, color: '#ff7d75', examples: []}, //성가신
+  { keys: 10, color: '#78b2f5ff', examples: []}, //슬픔
+  { keys: 11, color: '#325072ff', examples: []}, //실망한
+  { keys: 12, color: '#9b7959ff', examples: []}, //비통한
+  { keys: 13, color: '#30632aff', examples: []}, //후회되는
+  { keys: 14, color: '#c58d59ff', examples: []}, //우울한
+  { keys: 15, color: '#845ce4ff', examples: []}, //마비된
+  { keys: 16, color: '#36993eff', examples: []}, //염세적인
+  { keys: 17, color: '#ff7d75', examples: []}, //
   { keys: 18, color: '#ff7d75', examples: []},
   { keys: 19, color: '#ff7d75', examples: []},
   { keys: 20, color: '#ff7d75', examples: []},

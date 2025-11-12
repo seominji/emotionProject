@@ -8,45 +8,96 @@ import {aliasByKey} from './data/aliasByKey.js';
 
 
 //inputWrap.style.display = 'block';
- //여기에 스페이스 키 다운 안내 버튼 추가
+//여기에 스페이스 키 다운 안내 버튼 추가
 document.addEventListener('DOMContentLoaded', () => {
-    // 문구 담을 div 생성
-    const div = document.createElement('div');
-    div.textContent = '스페이스를 눌러 진행해주세요.';
-
-    // 멘트 스타일
-    div.style.cssText = `
+    // 문구 담을 guideDiv 생성
+    const guideDiv = document.createElement('div');
+    guideDiv.textContent = '어서오세요. 오브의 세계에 오신 것을 환영합니다.';
+    guideDiv.style.cssText = `
         position: fixed;
-        top: 50%;
+        top: 45%;
         left: 50%;
-        transform: translate(-50%, -50%);
+        transform: translateX(-50%);
         padding: 20px 40px;
         background-color: rgba(28, 30, 53, 0.75);
         color: white;
         border-radius: 12px;
-        font-size: 20px;
         text-align: center;
-        opacity: 0; /* 처음엔 투명 */
-        transition: opacity 1.5s ease; /* 부드러운 페이드 효과 */
+        font-size: 24px;
+        opacity: 0;
+        transition: opacity 1.5s ease;
     `;
 
+    // guideDiv의 크기를 기준으로 divContainer 생성
+    const divContainer = document.createElement('div');
+    divContainer.style.cssText = `
+        position: fixed;
+        top: 55%;
+        left: 50%;
+        width: ${guideDiv.offsetWidth}px; /* guideDiv와 같은 너비 */
+        transform: translateX(-50%);
+        position: fixed;
+        font-family: 'Arial, sans-serif';
+        font-weight: lighter;
+        opacity: 0;
+        transition: opacity 1.5s ease;
+    `;
+
+    // nextDiv, skipDiv 생성
+    const skipDiv = document.createElement('div');
+    skipDiv.textContent = 'enter→skip';
+    skipDiv.style.cssText = `
+        position: absolute;
+        right: 0;
+        margin-right: 10px;
+        padding: 10px 20px;
+        background-color: rgba(28,30,53,0.75);
+        color: white;
+        border-radius: 8px;
+        font-size: 16px;
+        font-family: 'Arial, sans-serif';
+    `;
+
+    const nextDiv = document.createElement('div');
+    nextDiv.textContent = 'space→next';
+    nextDiv.style.cssText = `
+        position: absolute;
+        left: 0;
+        margin-left: 10px;
+        padding: 10px 20px;
+        background-color: rgba(28,30,53,0.75);
+        color: white;
+        border-radius: 8px;
+        font-size: 16px;
+    `;
+
+    // divContainer에 append
+    divContainer.appendChild(nextDiv);
+    divContainer.appendChild(skipDiv);
+
     // 화면에 추가
-    document.body.appendChild(div);
+    document.body.appendChild(guideDiv);
+    document.body.appendChild(divContainer);
 
     // 4️⃣ 페이드인 (화면에 나타남)
     setTimeout(() => {
-        div.style.opacity = '1';
+        guideDiv.style.opacity = '1';
+        setTimeout(() => {
+        divContainer.style.opacity = '1';
+        }, 2000); // guideDiv가 완전히 나타난 후 divContainer 페이드인
     }, 1000); // 살짝 지연시켜야 transition이 적용됨
     
     // 5️⃣ 스페이스 누르면 페이드아웃
     function handleKey(e) {
         if (e.code === 'Space' || e.key === ' ') {
-        div.style.opacity = '0';
+        guideDiv.style.opacity = '0';
+        divContainer.style.opacity = '0';
         document.removeEventListener('keydown', handleKey);
+        
 
         // 완전히 사라진 뒤 DOM에서 제거
         setTimeout(() => {
-            div.remove();
+            guideDiv.remove();
         }, 1500); // transition 시간(1.5초)과 맞춤
         }
     }
@@ -102,6 +153,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             inputWrap.classList.add('show');
             inputWrap.style.display = 'block';
+            
+            inputEl.focus();
             
             document.removeEventListener('keydown', handleKeyPress);
         }
@@ -345,14 +398,12 @@ function shiftColor(color, shift) {
 	// supports hex or hsl()
 	if (color.startsWith('#')) {
 		const { h, s, l } = hexToHsl(color);
-        console.log('shiftColor 호출:', color, '->', `hsl(${(h + shift) % 360} ${s}% ${l}%)`);
-		return `hsl(${(h + shift) % 360} ${s}% ${l}%)`;
+        return `hsl(${(h + shift) % 360} ${s}% ${l}%)`;
 	}
 	if (color.startsWith('hsl')) {
 		const parts = color.replace(/hsl\(|\)|%/g, '').split(/\s+/);
 		const h = (parseFloat(parts[0]) + shift) % 360;
-        console.log('shiftColor 호출:', color, '->', `hsl(${h} ${parts[1]}% ${parts[2]}%)`);
-		return `hsl(${h} ${parts[1]}% ${parts[2]}%)`;
+        return `hsl(${h} ${parts[1]}% ${parts[2]}%)`;
 	}
     console.warn('지원되지 않는 색상 포맷:', color);
 	return color;
@@ -371,13 +422,15 @@ function withAlpha(color, alpha) {
 
 function hexToRgb(hex) {
 	let c = hex.replace('#', '');
+    // 8자리(hex + alpha)면 마지막 두 자리(alpha) 제거
+    if (c.length === 8) c = c.slice(0, 6);
 	if (c.length === 3) c = c.split('').map(x => x + x).join('');
 	const num = parseInt(c, 16);
 	return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
 }
 
 function hexToHsl(hex) {
-	const { r, g, b } = hexToRgb(hex);
+    const { r, g, b } = hexToRgb(hex);
 	const r1 = r / 255, g1 = g / 255, b1 = b / 255;
 	const max = Math.max(r1, g1, b1), min = Math.min(r1, g1, b1);
 	let h, s; const l = (max + min) / 2;
@@ -394,6 +447,7 @@ function hexToHsl(hex) {
 		h *= 60;
 	}
 	return { h: Math.round(h || 0), s: Math.round((s || 0) * 100), l: Math.round(l * 100) };
+    
 }
 
 function randomBetween(min, max) {
@@ -417,7 +471,7 @@ function renderOrbsFromText(hfid) { //감정별 라벨이 인자로 전달.
         //sendUnknownEmotion(text, []);
        
         const baseColor = colorForEmotion(hfid);
-        console.warn('최초 오브 리턴 컬러: ', baseColor);
+        //console.warn('최초 오브 리턴 컬러: ', baseColor);
         for (let i = 0; i < COUNT; i++) {
 			const { el, stop } = createOrb(i, baseColor);
             layerStops.push(stop);
@@ -427,7 +481,7 @@ function renderOrbsFromText(hfid) { //감정별 라벨이 인자로 전달.
     //단일 토큰만 데모.
     else {
         const color = colorForEmotion(hfid);
-        console.log('감정 id:', hfid, '매핑 색상:', color);
+        //console.log('감정 id:', hfid, '매핑 색상:', color);
 
         for (let i = 0; i < COUNT; i++) {
             const { el, stop } = createOrb(i, color);
@@ -587,7 +641,29 @@ async function handleEmotionSubmit() {
     }
 */
 
+    // 입력칸과 기존 원 레이어 페이드아웃
+    if (inputWrap) inputWrap.classList.add('hide');
+    const layersToRemove = document.querySelectorAll('.canvas .layer');
+    layersToRemove.forEach(el => el.style.opacity = '0');
+
+    setTimeout(() => {
+        layersToRemove.forEach(el => {
+            if (el.parentNode) el.parentNode.removeChild(el);
+        });
+        if (inputWrap) inputWrap.classList.add('removed');
+
+		setTimeout(() => {
+			//renderOrbsFromText(anlValue);
+			_msgLock = false;
+		}, 1000); //최초 원 페이드 아웃
+	}, 3000); // 입력창 페이드 아웃    
+
+    
+    //이 사이에 화면엔 로딩 인디케이터 넣기.
+    
+
     let anlValue = null;
+
     try{
         const response = await fetch('http://localhost:3001/analyze', {
             method: 'POST',
@@ -608,23 +684,10 @@ async function handleEmotionSubmit() {
 
     console.log("서버 리턴 값: ", typeof anlValue, anlValue);
 
+    renderOrbsFromText(anlValue);
 
-    // 입력칸과 기존 원 레이어 페이드아웃
-    if (inputWrap) inputWrap.classList.add('hide');
-    const layersToRemove = document.querySelectorAll('.canvas .layer');
-    layersToRemove.forEach(el => el.style.opacity = '0');
 
-    setTimeout(() => {
-        layersToRemove.forEach(el => {
-            if (el.parentNode) el.parentNode.removeChild(el);
-        });
-        if (inputWrap) inputWrap.classList.add('removed');
-
-		setTimeout(() => {
-			renderOrbsFromText(anlValue);
-			_msgLock = false;
-		}, 1000); //최초 원 페이드 아웃
-	}, 3000); // 입력창 페이드 아웃    
+    
 }
 
 
@@ -709,55 +772,6 @@ function handleOrbClick(e) {
         if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
         cancelCurrent = null;
       };
-
-    
-    // 방사형 배경 효과를 위한 요소 생성
-    /*
-    const ripple = document.createElement('div');
-    ripple.className = 'background-ripple';
-    
-    // 화면 대각선 길이 계산 (가장 먼 거리)
-    const maxDistance = Math.sqrt(
-        Math.pow(Math.max(orbCenterX, window.innerWidth - orbCenterX), 2) +
-        Math.pow(Math.max(orbCenterY, window.innerHeight - orbCenterY), 2)
-    );
-    
-    ripple.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: radial-gradient(circle at ${orbCenterX}px ${orbCenterY}px, 
-            ${color} 0%, 
-            ${color.replace(')', ', 0.7)')} 30%, 
-            ${color.replace(')', ', 0.3)')} 60%, 
-            transparent 100%);
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 1.2s ease-out;
-        z-index: -1;
-    `;
-    
-    document.body.appendChild(ripple);
-    
-    // 방사형 효과 시작
-    requestAnimationFrame(() => {
-        ripple.style.opacity = '1';
-    });
-
-    */
-    
-    // 모든 원 페이드아웃
-    /*
-    const layers = document.querySelectorAll('.layer');
-    layers.forEach(layer => {
-        layer.style.opacity = '0';
-        setTimeout(() => {
-            if (layer.parentNode) layer.parentNode.removeChild(layer);
-        }, 800);
-    });
-	*/
 
 
 	// 예시 문장 표시할 요소 생성

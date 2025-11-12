@@ -15,7 +15,7 @@ export const emotionColorMap = [
   { keys: 10, color: '#78b2f5ff', examples: []}, //슬픔
   { keys: 11, color: '#325072ff', examples: []}, //실망한
   { keys: 12, color: '#9b7959ff', examples: []}, //비통한
-  { keys: 13, color: '#30632aff', examples: []}, //후회되는
+  { keys: 13, color: '#59c44eff', examples: []}, //후회되는
   { keys: 14, color: '#c58d59ff', examples: []}, //우울한
   { keys: 15, color: '#845ce4ff', examples: []}, //마비된
   { keys: 16, color: '#36993eff', examples: []}, //염세적인

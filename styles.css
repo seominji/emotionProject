@@ -37,7 +37,6 @@ body {
 		 url('./font/Eulyoo.ttf') format('truetype');
     /* 3. (선택 사항) 폰트의 굵기 및 스타일 지정 */
     font-weight: lighter;
-    font-style: normal;
 	font-size: 10%;
 
 }

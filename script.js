@@ -2,46 +2,102 @@ const inputEl = document.getElementById('emotion-input'); //실제 html input �
 const inputWrap = document.querySelector('.input-wrap'); //input div 껍데기
 const canvasEl = document.getElementById('canvas');
 
-//inputWrap.style.display = 'block';
- //여기에 스페이스 키 다운 안내 버튼 추가
-document.addEventListener('DOMContentLoaded', () => {
-    // 문구 담을 div 생성
-    const div = document.createElement('div');
-    div.textContent = '스페이스를 눌러 진행해주세요.';
+import {emotionColorMap} from './data/emotionColorMap.js';
+import {stopwords} from './data/stopwords.js';
+import {aliasByKey} from './data/aliasByKey.js';
 
-    // 멘트 스타일
-    div.style.cssText = `
+
+//inputWrap.style.display = 'block';
+//여기에 스페이스 키 다운 안내 버튼 추가
+document.addEventListener('DOMContentLoaded', () => {
+    // 문구 담을 guideDiv 생성
+    const guideDiv = document.createElement('div');
+    guideDiv.textContent = '어서오세요. 오브의 세계에 오신 것을 환영합니다.';
+    guideDiv.style.cssText = `
         position: fixed;
-        top: 50%;
+        top: 45%;
         left: 50%;
-        transform: translate(-50%, -50%);
+        transform: translateX(-50%);
         padding: 20px 40px;
         background-color: rgba(28, 30, 53, 0.75);
         color: white;
         border-radius: 12px;
-        font-size: 20px;
         text-align: center;
-        opacity: 0; /* 처음엔 투명 */
-        transition: opacity 1.5s ease; /* 부드러운 페이드 효과 */
+        font-size: 24px;
+        opacity: 0;
+        transition: opacity 1.5s ease;
     `;
 
+    // guideDiv의 크기를 기준으로 divContainer 생성
+    const divContainer = document.createElement('div');
+    divContainer.style.cssText = `
+        position: fixed;
+        top: 55%;
+        left: 50%;
+        width: ${guideDiv.offsetWidth}px; /* guideDiv와 같은 너비 */
+        transform: translateX(-50%);
+        position: fixed;
+        font-family: 'Arial, sans-serif';
+        font-weight: lighter;
+        opacity: 0;
+        transition: opacity 1.5s ease;
+    `;
+
+    // nextDiv, skipDiv 생성
+    const skipDiv = document.createElement('div');
+    skipDiv.textContent = 'enter→skip';
+    skipDiv.style.cssText = `
+        position: absolute;
+        right: 0;
+        margin-right: 10px;
+        padding: 10px 20px;
+        background-color: rgba(28,30,53,0.75);
+        color: white;
+        border-radius: 8px;
+        font-size: 16px;
+        font-family: 'Arial, sans-serif';
+    `;
+
+    const nextDiv = document.createElement('div');
+    nextDiv.textContent = 'space→next';
+    nextDiv.style.cssText = `
+        position: absolute;
+        left: 0;
+        margin-left: 10px;
+        padding: 10px 20px;
+        background-color: rgba(28,30,53,0.75);
+        color: white;
+        border-radius: 8px;
+        font-size: 16px;
+    `;
+
+    // divContainer에 append
+    divContainer.appendChild(nextDiv);
+    divContainer.appendChild(skipDiv);
+
     // 화면에 추가
-    document.body.appendChild(div);
+    document.body.appendChild(guideDiv);
+    document.body.appendChild(divContainer);
 
     // 4️⃣ 페이드인 (화면에 나타남)
     setTimeout(() => {
-        div.style.opacity = '1';
+        guideDiv.style.opacity = '1';
+        setTimeout(() => {
+        divContainer.style.opacity = '1';
+        }, 2000); // guideDiv가 완전히 나타난 후 divContainer 페이드인
     }, 1000); // 살짝 지연시켜야 transition이 적용됨
     
     // 5️⃣ 스페이스 누르면 페이드아웃
     function handleKey(e) {
         if (e.code === 'Space' || e.key === ' ') {
-        div.style.opacity = '0';
+        guideDiv.style.opacity = '0';
+        divContainer.style.opacity = '0';
         document.removeEventListener('keydown', handleKey);
+        
 
         // 완전히 사라진 뒤 DOM에서 제거
         setTimeout(() => {
-            div.remove();
+            guideDiv.remove();
         }, 1500); // transition 시간(1.5초)과 맞춤
         }
     }
@@ -98,6 +154,8 @@ document.addEventListener('DOMContentLoaded', function() {
             inputWrap.classList.add('show');
             inputWrap.style.display = 'block';
             
+            inputEl.focus();
+            
             document.removeEventListener('keydown', handleKeyPress);
         }
     }
@@ -120,9 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
 let orbTimers = [];
 let layers = [];
 
-import {emotionColorMap} from './data/emotionColorMap.js';
-import {stopwords} from './data/stopwords.js';
-import {aliasByKey} from './data/aliasByKey.js';
+
 
 
 function aliasMatch(token, keyRaw) {
@@ -132,60 +188,20 @@ function aliasMatch(token, keyRaw) {
 	return false;
 }
 
-function colorForEmotion(text) {
-	if (!text) { return '#eeeeeeff'; }//초기 오브 색
-	const tNorm = normalizeText(text);
-	const tokens = tNorm.split(/\s+/).filter(Boolean);
-
-	let best = { color: null, score: -1 };
+function colorForEmotion(value) {
+	if (value === -1) { return '#eeeeeeff'; }//초기 오브 색
+	
 	for (const group of emotionColorMap) {
-		for (const keyRaw of group.keys) {
-			const key = normalizeText(keyRaw);
-			// 정확/부분 포함시 가산점
-			let score = 0;
-			if (tNorm.includes(key)) {
-				score = 1.0;
-			} else {
-				let localBest = 0;
-				for (const tok of tokens) {
-					if (aliasMatch(tok, keyRaw)) { localBest = 1; break; }
-					localBest = Math.max(localBest, jaroWinkler(tok, key));
-				}
-				score = localBest;
-			}
-			if (score > best.score) best = { color: group.color, score };
-		}
+		if(group.keys === value){
+        return group.color; 
+        }
 	}
 
-	// 임계값 이상이면 해당 컬러, 아니면 텍스트 기반 HSL
-	// 만약 매핑에도 없고, 유사도 임계값도 넘기지 못하는 입력값이라면 → 문자열 해시 기반 HSL로 폴백
-	return best.score >= 0.82 ? best.color : colorFromString(text);
+    console.error('일치하는 감정 색상 없음:', value);
+    return '#ff7215ff';
 }
 
-function isFallbackEmotion(text) {
-	if (!text) return false;
-	const tNorm = normalizeText(text);
-	const tokens = tNorm.split(/\s+/).filter(Boolean);
-	let best = -1;
-	for (const group of emotionColorMap) {
-		for (const keyRaw of group.keys) {
-			const key = normalizeText(keyRaw);
-			let score = 0;
-			if (tNorm.includes(key)) {
-				score = 1.0;
-			} else {
-				let localBest = 0;
-				for (const tok of tokens) {
-					if (aliasMatch(tok, keyRaw)) { localBest = 1; break; }
-					localBest = Math.max(localBest, jaroWinkler(tok, key));
-				}
-				score = localBest;
-			}
-			if (score > best) best = score;
-		}
-	}
-	return best < 0.82;
-}
+
 
 async function sendUnknownEmotion(inputText, failedTokens) {
 	try {
@@ -297,7 +313,7 @@ function createOrb(idx, baseColor) {
    
 	let size = randomBetween(60, 220);
 
-    console.warn('첫 오브 생성 전:', idx, baseColor);
+    //console.warn('첫 오브 생성 전:', idx, baseColor);
 
     if (baseColor === '#eeeeeeff') {
         // 초기 오브 색일 때는 작게
@@ -321,7 +337,7 @@ function createOrb(idx, baseColor) {
             const exampleIdx = idx % group.examples.length;
             exampleText = group.examples[exampleIdx];
             */
-            // 랜덤하게 예시 문장 선택    
+            // 랜덤하게 예시 문장 선택 근데 만약 18개 문장이 있으면 idx 값대로 배정하면 될듯. group.examples[idx] 이런 식으로.
             const randomIdx = Math.floor(Math.random() * group.examples.length);
             exampleText = group.examples[randomIdx];
             break;
@@ -356,7 +372,7 @@ function createOrb(idx, baseColor) {
 	const after = document.createElement('style');
 	after.textContent = `#${ensureCanvasId()} .orb.glow:nth-child(${idx + 1})::after{background:${glowColor};}`;
 	orb.appendChild(after);
-        console.warn('첫 오브 생성 후:', idx, glowColor);
+        //console.warn('첫 오브 생성 후:', idx, glowColor);
 
     // 부드러운 주변 이동(드리프트) 시작
     const stop = startWander(orb, 12); // 반경 12% 내에서 부유
@@ -382,13 +398,14 @@ function shiftColor(color, shift) {
 	// supports hex or hsl()
 	if (color.startsWith('#')) {
 		const { h, s, l } = hexToHsl(color);
-		return `hsl(${(h + shift) % 360} ${s}% ${l}%)`;
+        return `hsl(${(h + shift) % 360} ${s}% ${l}%)`;
 	}
 	if (color.startsWith('hsl')) {
 		const parts = color.replace(/hsl\(|\)|%/g, '').split(/\s+/);
 		const h = (parseFloat(parts[0]) + shift) % 360;
-		return `hsl(${h} ${parts[1]}% ${parts[2]}%)`;
+        return `hsl(${h} ${parts[1]}% ${parts[2]}%)`;
 	}
+    console.warn('지원되지 않는 색상 포맷:', color);
 	return color;
 }
 
@@ -405,13 +422,15 @@ function withAlpha(color, alpha) {
 
 function hexToRgb(hex) {
 	let c = hex.replace('#', '');
+    // 8자리(hex + alpha)면 마지막 두 자리(alpha) 제거
+    if (c.length === 8) c = c.slice(0, 6);
 	if (c.length === 3) c = c.split('').map(x => x + x).join('');
 	const num = parseInt(c, 16);
 	return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
 }
 
 function hexToHsl(hex) {
-	const { r, g, b } = hexToRgb(hex);
+    const { r, g, b } = hexToRgb(hex);
 	const r1 = r / 255, g1 = g / 255, b1 = b / 255;
 	const max = Math.max(r1, g1, b1), min = Math.min(r1, g1, b1);
 	let h, s; const l = (max + min) / 2;
@@ -428,13 +447,14 @@ function hexToHsl(hex) {
 		h *= 60;
 	}
 	return { h: Math.round(h || 0), s: Math.round((s || 0) * 100), l: Math.round(l * 100) };
+    
 }
 
 function randomBetween(min, max) {
 	return Math.random() * (max - min) + min;
 }
 
-function renderOrbsFromText(text) {
+function renderOrbsFromText(hfid) { //감정별 라벨이 인자로 전달.
 	//새로운 생성될 원의 개수
     const COUNT = 18;
 
@@ -444,46 +464,33 @@ function renderOrbsFromText(text) {
     layerEl.style.opacity = '0';
     const layerStops = [];
 
-    const tokens = tokenizeEmotions(text);
-    if (tokens.length === 0) {
+    //const tokens = tokenizeEmotions(hfid);
+
+    if (hfid === -1) {
         // 토큰이 없고, 매핑/유사도도 실패라면 DB에 기록
-        if (isFallbackEmotion(text)) {
-            sendUnknownEmotion(text, []);
-        }
-        const baseColor = colorForEmotion(text);
-        console.warn('최초 오브 리턴 컬러: ', baseColor);
+        //sendUnknownEmotion(text, []);
+       
+        const baseColor = colorForEmotion(hfid);
+        //console.warn('최초 오브 리턴 컬러: ', baseColor);
         for (let i = 0; i < COUNT; i++) {
 			const { el, stop } = createOrb(i, baseColor);
             layerStops.push(stop);
             layerEl.appendChild(el);
         }
-    } else {
-        // 각 토큰별 색 계산 후 개수 배분
-        const colors = tokens.map(t => colorForEmotion(t));
-        const per = Math.floor(COUNT / colors.length);
-        const remainder = COUNT - per * colors.length;
+    } 
+    //단일 토큰만 데모.
+    else {
+        const color = colorForEmotion(hfid);
+        //console.log('감정 id:', hfid, '매핑 색상:', color);
 
-        // 실패(폴백) 토큰 수집
-        const failed = tokens.filter(t => isFallbackEmotion(t));
-        if (failed.length > 0) {
-            sendUnknownEmotion(text, failed);
-        }
-
-        const assignment = [];
-        // 균등 분배
-        colors.forEach((c) => {
-            for (let i = 0; i < per; i++) assignment.push(c);
-        });
-        // 나머지는 첫 번째 감정 색으로 모두 배정
-        for (let i = 0; i < remainder; i++) assignment.push(colors[0]);
-
-        shuffleInPlace(assignment);
-        for (let i = 0; i < assignment.length; i++) {
-            const { el, stop } = createOrb(i, assignment[i]);
+        for (let i = 0; i < COUNT; i++) {
+            const { el, stop } = createOrb(i, color);
             layerStops.push(stop);
             layerEl.appendChild(el);
         }
     }
+
+
 
     canvasEl.appendChild(layerEl);
     // 페이드 인
@@ -511,7 +518,13 @@ function renderOrbsFromText(text) {
 }
 
 function tokenizeEmotions(text) {
-	if (!text) return [];
+	if (text<0) return [];
+    else {
+        const keep = [];
+        keep.push(text);
+        console.log('입력값 토큰:', keep.length);
+        return keep; //단일 토큰 데모용
+    }
 	const norm = normalizeText(text);
 	// 구분자: 공백, 콤마, 슬래시, 앰퍼샌드, 플러스, '과/와/그리고/및/and'
 	let raw = norm
@@ -528,11 +541,10 @@ function tokenizeEmotions(text) {
 	for (const tok of raw) {
 		let best = 0;
 		for (const group of emotionColorMap) {
-			for (const keyRaw of group.keys) {
-				const key = normalizeText(keyRaw);
-				if (tok.includes(key) || key.includes(tok) || aliasMatch(tok, keyRaw)) { best = 1; break; }
-				best = Math.max(best, jaroWinkler(tok, key));
-			}
+            const key = normalizeText(group.keys);
+            if (tok.includes(key) || key.includes(tok) || aliasMatch(tok, group.keys)) { best = 1; break; }
+            best = Math.max(best, jaroWinkler(tok, key));
+        
 			if (best >= 1) break;
 		}
 		if (best >= 0.72) keep.push(tok);
@@ -574,7 +586,7 @@ function startWander(orb, radiusPct) {
 }
 
 // 초기 렌더링 (빈 텍스트 → 기본 컬러)
-renderOrbsFromText('');
+renderOrbsFromText(-1);
 
 // 레이어/타이머 강제 클리어 함수
 function forceClearAllLayersAndTimers() {
@@ -604,6 +616,7 @@ async function handleEmotionSubmit() {
     _msgLock = true;
     const inputWrap = document.querySelector('.input-wrap');
     
+/*
     // 색상값 계산
     const colorValue = colorForEmotion(value);
     
@@ -621,11 +634,12 @@ async function handleEmotionSubmit() {
         });
         
         if (!response.ok) {
-            console.error('Failed to log emotion');
+            console.error('Failed to /api/emotion-log request');
         }
     } catch (err) {
         console.error('Error logging emotion:', err);
     }
+*/
 
     // 입력칸과 기존 원 레이어 페이드아웃
     if (inputWrap) inputWrap.classList.add('hide');
@@ -639,10 +653,41 @@ async function handleEmotionSubmit() {
         if (inputWrap) inputWrap.classList.add('removed');
 
 		setTimeout(() => {
-			renderOrbsFromText(value);
+			//renderOrbsFromText(anlValue);
 			_msgLock = false;
 		}, 1000); //최초 원 페이드 아웃
-	}, 3000); // 입력창 페이드 아웃
+	}, 3000); // 입력창 페이드 아웃    
+
+    
+    //이 사이에 화면엔 로딩 인디케이터 넣기.
+    
+
+    let anlValue = null;
+
+    try{
+        const response = await fetch('http://localhost:3001/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                value 
+            })
+        });
+
+        anlValue = await response.json();
+
+        if (!response.ok) {
+            console.error('Failed to /analyze request');
+        }
+    } catch (err) {    
+        console.error('Error handleEmotionSubmit() → /analyze:', err);
+    }
+
+    console.log("서버 리턴 값: ", typeof anlValue, anlValue);
+
+    renderOrbsFromText(anlValue);
+
+
+    
 }
 
 
@@ -727,55 +772,6 @@ function handleOrbClick(e) {
         if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
         cancelCurrent = null;
       };
-
-    
-    // 방사형 배경 효과를 위한 요소 생성
-    /*
-    const ripple = document.createElement('div');
-    ripple.className = 'background-ripple';
-    
-    // 화면 대각선 길이 계산 (가장 먼 거리)
-    const maxDistance = Math.sqrt(
-        Math.pow(Math.max(orbCenterX, window.innerWidth - orbCenterX), 2) +
-        Math.pow(Math.max(orbCenterY, window.innerHeight - orbCenterY), 2)
-    );
-    
-    ripple.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: radial-gradient(circle at ${orbCenterX}px ${orbCenterY}px, 
-            ${color} 0%, 
-            ${color.replace(')', ', 0.7)')} 30%, 
-            ${color.replace(')', ', 0.3)')} 60%, 
-            transparent 100%);
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 1.2s ease-out;
-        z-index: -1;
-    `;
-    
-    document.body.appendChild(ripple);
-    
-    // 방사형 효과 시작
-    requestAnimationFrame(() => {
-        ripple.style.opacity = '1';
-    });
-
-    */
-    
-    // 모든 원 페이드아웃
-    /*
-    const layers = document.querySelectorAll('.layer');
-    layers.forEach(layer => {
-        layer.style.opacity = '0';
-        setTimeout(() => {
-            if (layer.parentNode) layer.parentNode.removeChild(layer);
-        }, 800);
-    });
-	*/
 
 
 	// 예시 문장 표시할 요소 생성
